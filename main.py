@@ -30,7 +30,21 @@ def coord_to_grid(inp: tuple[int | float, int | float]) -> str:
     
     return f"{chr(major_grid_x + 65)}{major_grid_y + 1} {minor_grid_x}:{minor_grid_y}"
 
-def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: int, ref_2_coords: tuple[int, int], ref_2_distance: float) -> tuple[int, int]:    
+def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: int, ref_2_coords: tuple[int, int], ref_2_distance: float) -> tuple[int, int]:
+    """Calculate the coordinates of a target using a bearing from one point and distance from another point
+
+    Args:
+        ref_1_coords (tuple[int, int]): coordinates (in meters) of reference point 1
+        ref_1_bearing (int): bearing (in degrees, North = 0, clockwise) from reference point 1
+        ref_2_coords (tuple[int, int]): coordinates (in meters) of reference point 2
+        ref_2_distance (float): distance (in kilometers) from reference point 2
+
+    Raises:
+        ValueError: There are no points that intersect
+
+    Returns:
+        tuple[int, int]: coordinates (in meters) of target
+    """
     A = ref_1_coords[0]
     B = ref_1_coords[1]
     C = ref_2_coords[0]
@@ -53,7 +67,7 @@ def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: in
     
     if (t_1 > 0): res = t_1
     elif (t_2 > 0): res = t_2
-    else: raise ValueError(f"idk")
+    else: raise ValueError(f"No intersection found")
     
     x = A + res * math.cos(theta_0)
     y = B + res * math.sin(theta_0)

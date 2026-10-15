@@ -1,5 +1,7 @@
 import math
 
+def bearing_to_radians(theta: float) -> float: return ((-theta - 270) * math.pi) / 180
+
 def grid_to_coord(inp: str) -> tuple[int, int]:
     # inp expected to be in format of "N# #:#"
     split_input = inp.split(" ")
@@ -51,7 +53,7 @@ def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: in
     D = ref_2_coords[1]
     
     
-    theta_0 = ((-ref_1_bearing - 270) * math.pi) / 180
+    theta_0 = bearing_to_radians(ref_1_bearing)
     r = 1000 * ref_2_distance 
     
     E = A - C
@@ -74,11 +76,37 @@ def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: in
 
     return (int(x), int(y))
 
-nest = grid_to_coord("G4 1:1")
-spotter_1 = grid_to_coord("C5 2:3")
-spotter_2 = grid_to_coord("B6 0:6")
-spotter_3 = grid_to_coord("A4 5:5")
 
-ref_alpha = coord_from_bearing_distance(spotter_1, 69, spotter_2, 14.73)
-print(coord_to_grid(ref_alpha))
-print(coord_to_grid(coord_from_bearing_distance(ref_alpha, 207, spotter_1, 10.02)))
+def coords_from_two_bearings(ref_1_coords: tuple[int, int], ref_1_bearing: int, ref_2_coords: tuple[int, int], ref_2_bearing: int) -> tuple[int, int]:
+    a = bearing_to_radians(ref_1_bearing)
+    b = bearing_to_radians(ref_2_bearing)
+    
+    A = ref_1_coords[0]
+    B = ref_1_coords[1]
+    C = ref_2_coords[0]
+    D = ref_2_coords[1]
+    
+    x0_numer = -(A * math.tan(a)) + (C * math.tan(b)) + B - D
+    x0_denom = math.tan(b) - math.tan(a)
+    x0 = x0_numer / x0_denom
+    
+    t1 = (x0 - A) / math.cos(a)
+    t2 = (x0 - C) / math.cos(b)
+    
+    if (t1 < 0 or t2 < 0): raise ValueError(f"No intersection points")
+    
+    y0 = B + (x0 - A) * math.tan(a)
+    return (round(x0), round(y0))
+
+nest = grid_to_coord("C7 5:5")
+spotter_1 = grid_to_coord("E1 8:8")
+spotter_2 = grid_to_coord("C7 8:7")
+spotter_3 = grid_to_coord("E3 1:9")
+
+ref_alpha = coord_from_bearing_distance(spotter_1, 65, spotter_2, 8.21)
+target_1 = coords_from_two_bearings(ref_alpha, 118, spotter_3, 99)
+target_2 = coord_from_bearing_distance(ref_alpha, 181, spotter_1, 5.55)
+
+print(f"{coord_to_grid(ref_alpha) = }")
+print(f"{coord_to_grid(target_1) = }")
+print(f"{coord_to_grid(target_2) = }")

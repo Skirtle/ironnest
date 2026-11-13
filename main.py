@@ -1,6 +1,7 @@
-import math
+from math import sqrt, pi, sin, cos, tan, dist
+from random import randint, seed
 
-def bearing_to_radians(theta: float) -> float: return ((-theta - 270) * math.pi) / 180
+def bearing_to_radians(theta: float) -> float: return ((-theta - 270) * pi) / 180
 
 def quadratic(a: float | int, b: float | int, c: float | int) -> tuple[float, float]:
     if (a == 0): raise ValueError(f"a cannot be zero")
@@ -8,7 +9,7 @@ def quadratic(a: float | int, b: float | int, c: float | int) -> tuple[float, fl
     discrim = b*b - 4*a*c
     if (discrim < 0): raise ValueError(f"No real roots exist")
     
-    discrim_sqrt = math.sqrt(discrim)
+    discrim_sqrt = sqrt(discrim)
     
     x1 = (-b + discrim_sqrt) / (2 * a)
     x2 = (-b - discrim_sqrt) / (2 * a)
@@ -86,10 +87,10 @@ def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: in
     E = A - C
     G = B - D
     
-    b = 2 * (E * math.cos(theta_0) + G * math.sin(theta_0))
+    b = 2 * (E * cos(theta_0) + G * sin(theta_0))
     c = (E * E) + (G * G) - (r * r)
     
-    root = math.sqrt((b * b) - (4 * c))
+    root = sqrt((b * b) - (4 * c))
     
     t_1 = (-b - root) / 2
     t_2 = (-b + root) / 2
@@ -98,8 +99,8 @@ def coord_from_bearing_distance(ref_1_coords: tuple[int, int], ref_1_bearing: in
     elif (t_2 > 0): res = t_2
     else: raise ValueError(f"No intersection found")
     
-    x = A + res * math.cos(theta_0)
-    y = B + res * math.sin(theta_0)
+    x = A + res * cos(theta_0)
+    y = B + res * sin(theta_0)
 
     return (int(x), int(y))
 
@@ -126,16 +127,16 @@ def coords_from_two_bearings(ref_1_coords: tuple[int, int], ref_1_bearing: int, 
     C = ref_2_coords[0]
     D = ref_2_coords[1]
     
-    x0_numer = -(A * math.tan(a)) + (C * math.tan(b)) + B - D
-    x0_denom = math.tan(b) - math.tan(a)
+    x0_numer = -(A * tan(a)) + (C * tan(b)) + B - D
+    x0_denom = tan(b) - tan(a)
     x0 = x0_numer / x0_denom
     
-    t1 = (x0 - A) / math.cos(a)
-    t2 = (x0 - C) / math.cos(b)
+    t1 = (x0 - A) / cos(a)
+    t2 = (x0 - C) / cos(b)
     
     if (t1 < 0 or t2 < 0): raise ValueError(f"No intersection points")
     
-    y0 = B + (x0 - A) * math.tan(a)
+    y0 = B + (x0 - A) * tan(a)
     return (round(x0), round(y0))
 
 def coords_from_two_distances(ref_1_coords: tuple[int, int], ref_1_distance: float, ref_2_coords: tuple[int, int], ref_2_distance: float) -> tuple[tuple[int, int], tuple[int, int]]:
@@ -167,14 +168,26 @@ def coords_from_two_distances(ref_1_coords: tuple[int, int], ref_1_distance: flo
     f = lambda x: int((2*x*(A-C) + r1**2 + C**2 + D**2 - A**2 - B**2 - r2**2) / (2 * (D-B)))
     return ((int(x1), f(x1)), (int(x2), f(x2)))
 
-nest = grid_to_coord("C7 5:5")
-spotter_1 = grid_to_coord("E1 8:8")
-spotter_2 = grid_to_coord("C7 8:7")
-spotter_3 = grid_to_coord("E3 1:9")
+def create_game(game_seed: int | None = None, spotter_count: int = 3, target_count: int = 3, min_spotter_target_distance: int = 200, min_spotter_distance: int = 200, min_target_distance: int = 50):
+    seed(game_seed)
+    spotters: list[tuple[int, int]] = []
+    targets: list[tuple[int, int]] = []
+    for _ in range(spotter_count):
+        pos = (randint(0, 20000), randint(0, 10000))
+        for spotter in spotters:
+            while (dist(pos, spotter) < min_spotter_distance):
+                pos = (randint(0, 20000), randint(0, 10000))
+        spotters.append(pos)
+    
+    for _ in range(target_count):
+        pos = (randint(0, 20000), randint(0, 10000))
+        for target in targets:
+            while (dist(pos, target) < min_target_distance):
+                pos = (randint(0, 20000), randint(0, 10000))
+        targets.append(pos)
+            
+    
+    print(spotters)
+    print(targets)
 
-ref_alpha = coord_from_bearing_distance(spotter_1, 65, spotter_2, 8.21)
-target_1 = coords_from_two_bearings(ref_alpha, 118, spotter_3, 99)
-target_2 = coord_from_bearing_distance(ref_alpha, 181, spotter_1, 5.55)
-
-p1, r1 = (5000, 5500), 4.06
-p2, r2 = (9600, 3500), 2.95
+create_game()
